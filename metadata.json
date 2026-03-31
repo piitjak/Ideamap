@@ -1,0 +1,5 @@
+{
+  "name": "IdeaMapper",
+  "description": "A desktop PWA for recording and organizing ideas in a spatial mind map structure with support for links, images, and local file storage.",
+  "requestFramePermissions": []
+}
