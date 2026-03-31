@@ -30,6 +30,11 @@ const NODE_COLORS = [
   { name: 'Soft Sand', value: '#F5F5F0' },
 ];
 
+/**
+ * Calculates the appropriate text color (black or white) based on the background color's brightness.
+ * @param hexColor The background color in hex format.
+ * @returns Either '#1A1A1A' (dark) or '#FFFFFF' (light).
+ */
 const getContrastColor = (hexColor: string) => {
   const r = parseInt(hexColor.slice(1, 3), 16);
   const g = parseInt(hexColor.slice(3, 5), 16);
@@ -38,6 +43,10 @@ const getContrastColor = (hexColor: string) => {
   return brightness > 128 ? '#1A1A1A' : '#FFFFFF';
 };
 
+/**
+ * Factory function to create a new mind map node with a unique ID.
+ * @param text Initial text for the node.
+ */
 const createNewNode = (text: string = 'New Idea'): MindMapNode => ({
   id: uuidv4(),
   text,
@@ -45,6 +54,10 @@ const createNewNode = (text: string = 'New Idea'): MindMapNode => ({
   isExpanded: true,
 });
 
+/**
+ * Factory function to create a new topic with a root node.
+ * @param title The title of the topic.
+ */
 const createNewTopic = (title: string = 'New Topic'): TopicPage => {
   const root = createNewNode(title);
   return {
@@ -56,6 +69,10 @@ const createNewTopic = (title: string = 'New Topic'): TopicPage => {
   };
 };
 
+/**
+ * Extended MindMapNode interface used during the layout calculation phase.
+ * Includes absolute coordinates and dimensions.
+ */
 interface PositionedNode extends MindMapNode {
   x: number;
   y: number;
@@ -65,6 +82,10 @@ interface PositionedNode extends MindMapNode {
   side: 'left' | 'right' | 'center';
 }
 
+/**
+ * The main application component for IdeaMapper.
+ * Manages state for topics, active topic, UI preferences, and canvas interactions.
+ */
 export default function App() {
   const { isSupported, selectFile, saveFile, hasFile } = useFileSystem();
   const [data, setData] = useState<AppData>(INITIAL_DATA);
@@ -149,6 +170,10 @@ export default function App() {
     }
   };
 
+  /**
+   * Updates the active topic's data structure using a provided updater function.
+   * This is a helper to modify deep state within the topics array.
+   */
   const updateActiveTopic = (updater: (topic: TopicPage) => TopicPage) => {
     setData(prev => ({
       ...prev,
@@ -158,6 +183,10 @@ export default function App() {
 
   const activeTopic = data.topics.find(t => t.id === activeTopicId);
 
+  /**
+   * Handles mouse wheel events on the Konva stage to implement zooming.
+   * Uses the pointer position as the zoom anchor.
+   */
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
     const stage = stageRef.current;
@@ -239,9 +268,14 @@ export default function App() {
   };
 
   // Layout Algorithm
+  /**
+   * Re-calculates the layout of all nodes in the active topic whenever the topic data changes.
+   * This uses a recursive algorithm to position nodes in a tree structure.
+   */
   const layoutNodes = useMemo(() => {
     if (!activeTopic) return [];
 
+    /** Calculates the total vertical space required by a node and its expanded subtree. */
     const calculateSubtreeHeight = (node: MindMapNode): number => {
       if (!node.isExpanded || node.children.length === 0) return NODE_HEIGHT;
       const childrenHeight = node.children.reduce((acc, child) => acc + calculateSubtreeHeight(child), 0);
@@ -250,6 +284,7 @@ export default function App() {
 
     const positioned: PositionedNode[] = [];
 
+    /** Recursively positions a node and its children. */
     const layoutSubtree = (node: MindMapNode, x: number, y: number, side: 'left' | 'right' | 'center') => {
       const subtreeHeight = calculateSubtreeHeight(node);
       const pNode: PositionedNode = {
